@@ -72,21 +72,31 @@ LR and XGBoost have opposite calibration errors. LR underestimates risk at highe
 
 SHAP and IV rankings diverge slightly — installment and loan_amnt rank higher in SHAP than IV because SHAP captures interaction effects the model learned, while IV measures each variable's signal in isolation.
 
+## Scoring Demo
+ 
+A Streamlit app (`app.py`) lets you input borrower details and get a predicted PD in real time. It loads the trained XGBoost model and handles all preprocessing — categorical encoding, column ordering — before calling predict_proba.
+ 
+To run locally:
+ 
+```bash
+streamlit run app.py
+```
+ 
 ## Repository Structure
-
+ 
 ```
 ├── lendingclub.ipynb    # Full pipeline: data → features → models → validation
 ├── app.py               # Streamlit scoring demo
+├── xgb_model.pkl        # Trained XGBoost model
 └── README.md
 ```
-
+ 
 ## How to Run
-
-```python
+ 
+```bash
 pip install pandas numpy scikit-learn xgboost optbinning shap streamlit joblib
-
+ 
 # Run notebook top to bottom — all outputs are self-contained
-
 # Launch scoring demo
 streamlit run app.py
 ```
