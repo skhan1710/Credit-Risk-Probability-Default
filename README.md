@@ -62,8 +62,8 @@ LR and XGBoost have opposite calibration errors. LR underestimates risk at highe
 
 ### SHAP Feature Importance
 
-| Feature | Mean |SHAP| |
-|---------|------------|
+| Feature | Mean SHAP |
+|---------|-----------|
 | term | 0.513 |
 | installment | 0.499 |
 | loan_amnt | 0.330 |
