@@ -13,7 +13,7 @@ A credit risk modeling project built on 1.25M LendingClub personal loans. Trains
 | Class split | 78.8% good · 21.2% bad |
 | Train / Test split | 2012–2015 development · 2016–2017 out-of-time |
 
-2012–2017 was chosen because every loan in that window had enough time to reach a terminal status by the dataset's 2018 cutoff. Loans still marked Current, In Grace Period, or Late 16-30 days at cutoff were dropped — their outcome is unknown, so they can't be used as training examples.
+2012–2017 was chosen because every loan in that window had enough time to reach a terminal status by the dataset's 2018 cutoff. Loans still marked Current, In Grace Period, or Late 16-30 days at cutoff were dropped because their outcome is unknown, so they can't be used as training examples.
 
 LendingClub's proprietary risk grades and interest rates were excluded entirely. Both variables are assigned by LendingClub after their own internal credit assessment, so including them would mean partially copying their model rather than building an independent one.
 
@@ -46,7 +46,7 @@ The IV formula for one variable across all its bins:
 IV = Σ (% Goods in bin - % Bads in bin) × ln(% Goods in bin / % Bads in bin)
 ```
 
-The difference term `(% Goods - % Bads)` acts as a weight — it scales each bin's contribution by how much of the population it represents. The log ratio `ln(% Goods / % Bads)` captures the relative imbalance between good and bad borrowers in that bin. Multiplying them means a bin only contributes significantly when both conditions are true: it covers a meaningful share of the portfolio AND shows a strong separation between goods and bads.
+The difference term `(% Goods - % Bads)` acts as a weight as it scales each bin's contribution by how much of the population it represents. The log ratio `ln(% Goods / % Bads)` captures the relative imbalance between good and bad borrowers in that bin. Multiplying them means a bin only contributes significantly when both conditions are true: it covers a meaningful share of the portfolio AND shows a strong separation between goods and bads.
 
 A variable with strong signal in only a tiny fraction of loans scores low IV regardless of how extreme that signal is. This is intentional.
 
@@ -121,7 +121,7 @@ Discrimination and calibration measure different things. Gini and KS measure ran
 
 LR and XGBoost have opposite calibration errors.
 
-LR underestimates risk at higher PD buckets. The model says 25% but 33% actually default. This is a known property of logistic regression — it tends to pull predictions toward the mean.
+LR underestimates risk at higher PD buckets. The model says 25% but 33% actually default. This is a known property of logistic regression as it tends to pull predictions toward the mean.
 
 XGBoost overestimates risk across the board. The model says 35% but only 20% actually default. The cause is scale_pos_weight = 3.72. During training, every misclassified bad loan carries a 3.72x heavier gradient penalty than a misclassified good loan. The model compensates by pushing predicted probabilities higher than they should be to avoid the penalty which systematically inflates PD estimates.
 
