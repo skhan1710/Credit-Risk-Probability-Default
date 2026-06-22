@@ -110,20 +110,20 @@ XGBoost builds 500 trees sequentially. Each tree predicts the residual errors of
 | KS | 0.2625 | 0.2969 |
 | PSI (train vs OOT) | 0.0030 | 0.0012 |
 
-AUC answers: if you randomly pick one defaulted loan and one good loan, what is the probability the model ranked the defaulted loan as riskier? At 0.705, XGBoost gets this right 70.5% of the time. Gini is AUC rescaled to start at 0 (random) rather than 0.5. KS measures the maximum separation between the cumulative default and non-default score distributions — at the optimal threshold, XGBoost separates the two groups 4.4 percentage points better than logistic regression.
+AUC answers: if you randomly pick one defaulted loan and one good loan, what is the probability the model ranked the defaulted loan as riskier? At 0.705, XGBoost gets this right 70.5% of the time. Gini is AUC rescaled to start at 0 (random) rather than 0.5. KS measures the maximum separation between the cumulative default and non-default score distributions at the optimal threshold, XGBoost separates the two groups 4.4 percentage points better than logistic regression.
 
 XGBoost outperforms on all discrimination metrics. The gap is modest because both models are working from the same raw application-time features without LendingClub's proprietary risk grades. This is the honest ceiling of the available signal.
 
 
 ## Calibration
 
-Discrimination and calibration measure different things. Gini and KS measure rank ordering — does the model correctly identify which borrowers are riskier than others? Calibration measures absolute accuracy — if the model says 20% PD, do 20% of those borrowers actually default?
+Discrimination and calibration measure different things. Gini and KS measure rank ordering i.e. does the model correctly identify which borrowers are riskier than others? Calibration measures absolute accuracy which is if the model says 20% PD, do 20% of those borrowers actually default?
 
 LR and XGBoost have opposite calibration errors.
 
 LR underestimates risk at higher PD buckets. The model says 25% but 33% actually default. This is a known property of logistic regression — it tends to pull predictions toward the mean.
 
-XGBoost overestimates risk across the board. The model says 35% but only 20% actually default. The cause is scale_pos_weight = 3.72. During training, every misclassified bad loan carries a 3.72x heavier gradient penalty than a misclassified good loan. The model compensates by pushing predicted probabilities higher than they should be to avoid the penalty — which systematically inflates PD estimates.
+XGBoost overestimates risk across the board. The model says 35% but only 20% actually default. The cause is scale_pos_weight = 3.72. During training, every misclassified bad loan carries a 3.72x heavier gradient penalty than a misclassified good loan. The model compensates by pushing predicted probabilities higher than they should be to avoid the penalty which systematically inflates PD estimates.
 
 This matters for loss forecasting. If the model is used to calculate CECL reserves, miscalibrated PDs produce incorrect reserve estimates regardless of how good the Gini is. A production deployment would apply Platt scaling to correct XGBoost's calibration before using predicted PDs for any dollar-value calculation.
 
@@ -141,7 +141,7 @@ SHAP assigns each feature a value for each individual prediction i.e. how much d
 | fico_avg | 0.213 |
 | acc_open_past_24mths | 0.193 |
 
-IV and SHAP rankings diverge. IV ranked fico_avg second (IV = 0.116). SHAP ranks installment second (mean SHAP = 0.499). IV measures each variable's signal in isolation — how well does fico_avg alone separate goods from bads? SHAP measures actual influence inside the trained model, which includes interactions between features. Installment and loan_amnt are correlated with term (longer term loans have lower monthly payments on the same principal), and the model learned to use all three together. IV can't see that; SHAP can.
+IV and SHAP rankings diverge. IV ranked fico_avg second (IV = 0.116). SHAP ranks installment second (mean SHAP = 0.499). IV measures each variable's signal in isolation i.e. how well does fico_avg alone separate goods from bads? SHAP measures actual influence inside the trained model, which includes interactions between features. Installment and loan_amnt are correlated with term (longer term loans have lower monthly payments on the same principal), and the model learned to use all three together. 
 
 
 ## Population Stability
@@ -159,9 +159,9 @@ The difference term captures how much each score bucket shifted. The log ratio c
 
 | Limitation | Root cause | What would fix it |
 |------------|------------|-------------------|
-| Gini ceiling ~0.41 | grade and sub_grade excluded — they encode LendingClub's full credit assessment in a single variable | Including them pushes Gini to ~0.45 but creates dependence on a third-party risk model |
+| Gini ceiling ~0.41 | grade and sub_grade excluded because they encode LendingClub's full credit assessment in a single variable | Including them pushes Gini to ~0.45 but creates dependence on a third-party risk model |
 | XGBoost miscalibration | scale_pos_weight inflates bad loan gradients, pushing predicted PDs above actual default rates | Platt scaling or isotonic regression post-training |
-| No drift monitoring | PSI computed once on a fixed holdout — not a live monitoring pipeline | Rolling PSI on production score distributions |
+| No drift monitoring | PSI computed once on a fixed holdout, not a live monitoring pipeline | Rolling PSI on production score distributions |
 | Single origination environment | 2012–2017 was a stable post-GFC credit cycle | Retesting on a period that includes a recession would stress-test the model |
 | Static feature set | No macroeconomic overlays (unemployment, GDP growth) | Adding FRED macro variables as time-varying features |
 
